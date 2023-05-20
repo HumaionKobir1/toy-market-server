@@ -31,8 +31,19 @@ async function run() {
 
     const toyCollection = client.db('toyMarket').collection('toyProduct');
 
+    app.get('/allToy/:category', async(req, res) => {
+      if(req.params.category == "Robot-kit" || req.params.category == "Toy-robots" || req.params.category == "Digital-pets"){
+        const cursor = toyCollection.find({subCategory: req.params.category});
+        const result = await cursor.toArray();
+        return res.send(result);
+      }
+      const cursor = toyCollection.find({});
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     app.get('/allToy', async(req, res) => {
-      const cursor = toyCollection.find();
+      const cursor = toyCollection.find({});
       const result = await cursor.toArray();
       res.send(result);
     })
