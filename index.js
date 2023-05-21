@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
-const { MongoClient, ServerApiVersion, Collection } = require('mongodb');
+const { MongoClient, ServerApiVersion, Collection, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -31,6 +31,22 @@ async function run() {
 
     const toyCollection = client.db('toyMarket').collection('toyProduct');
 
+    
+
+    app.get('/Toy/:id', async(req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = {_id: new ObjectId(id)};
+      const result = await toyCollection.findOne(query);
+      res.send(result);
+    })
+
+    app.get('/allToy', async(req, res) => {
+      const cursor = toyCollection.find({});
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.get('/allToy/:category', async(req, res) => {
       if(req.params.category == "Robot-kit" || req.params.category == "Toy-robots" || req.params.category == "Digital-pets"){
         const cursor = toyCollection.find({subCategory: req.params.category});
@@ -42,13 +58,17 @@ async function run() {
       res.send(result);
     });
 
-    app.get('/allToy', async(req, res) => {
-      const cursor = toyCollection.find({});
-      const result = await cursor.toArray();
+    app.get('/myToy', async(req, res) => {
+      let query = {};
+      if(req.query?.email){
+        query = {email: req.query.email}
+      }
+      const result = await toyCollection.find(query).toArray();
       res.send(result);
     })
 
-    app.post('/toy', async(req, res) => {
+
+    app.post('/allToy', async(req, res) => {
       const newToy = req.body;
       console.log(newToy);
       const result = await toyCollection.insertOne(newToy);
