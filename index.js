@@ -21,13 +21,22 @@ const client = new MongoClient(uri, {
     version: ServerApiVersion.v1,
     strict: true,
     deprecationErrors: true,
-  }
+  },
+  useNewUrlParser: true,
+	useUnifiedTopology: true,
+	maxPoolSize: 10,
 });
 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
+    client.connect((err) => {
+			if (err) {
+				console.log(err);
+				return;
+			}
+		});
 
     const toyCollection = client.db('toyMarket').collection('toyProduct');
 
@@ -59,11 +68,14 @@ async function run() {
     });
 
     app.get('/myToy', async(req, res) => {
-      let query = {};
+      let search = {};
       if(req.query?.email){
-        query = {email: req.query.email}
-      }
-      const result = await toyCollection.find(query).toArray();
+        search = {email: req.query?.email}
+      };
+      const option = {
+        sort: {"price": req.query?.sort || 1}
+      };
+      const result = await toyCollection.find(search, option).collation({locale: "en_US", numericOrdering: true }).toArray();
       res.send(result);
     });
 
